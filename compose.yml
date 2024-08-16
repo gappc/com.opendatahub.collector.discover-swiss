@@ -1,0 +1,44 @@
+services:
+  mongo:
+    image: mongo
+    restart: unless-stopped
+    expose:
+      - 27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_ADMIN_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_ADMIN_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGODB_DATABASE_NAME}
+
+  mongo-express:
+    image: mongo-express
+    restart: unless-stopped
+    expose:
+      - 8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGODB_ADMIN_USERNAME}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGODB_ADMIN_PASSWORD}
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGODB_ADMIN_USERNAME}:${MONGODB_ADMIN_PASSWORD}@mongo:27017/
+      ME_CONFIG_BASICAUTH: false
+
+  discover-swiss-collector:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile
+      target: dev
+    user: "${USER_UID}:${USER_GID}"
+    volumes:
+      - ./:/code
+    working_dir: /code
+    command: [ "./mvnw -B compile quarkus:dev" ]
+    restart: unless-stopped
+    expose:
+      - 8080
+    environment:
+      MONGODB_ADMIN_USERNAME: ${MONGODB_ADMIN_USERNAME}
+      MONGODB_ADMIN_PASSWORD: ${MONGODB_ADMIN_PASSWORD}
+      MONGODB_DATABASE_NAME: ${MONGODB_DATABASE_NAME}
+      DISCOVER_SWISS_APIKEY: ${DISCOVER_SWISS_APIKEY}
+      # Allow Quarkus to bind to all interfaces in its Docker container. If this is not set,
+      # it will be not possible to access the Quarkus application (collector) from the outside
+      # of the container.
+      QUARKUS_HTTP_HOST: 0.0.0.0
