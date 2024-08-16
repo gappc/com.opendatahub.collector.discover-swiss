@@ -50,7 +50,6 @@ cp compose.override.yml.example compose.override.yml
 
 # Start the collector, MongoDB and MongoDB Express as Docker containers using Docker Compose
 # The first start may take a while, as the collector will download all dependencies
-# TODO: fix this
 docker compose up
 ```
 
